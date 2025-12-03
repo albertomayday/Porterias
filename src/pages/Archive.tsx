@@ -5,7 +5,8 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Download } from "lucide-react";
+import jsPDF from "jspdf";
 
 interface ComicStrip {
   id: string;
@@ -38,6 +39,40 @@ const Archive = () => {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const downloadAsPDF = async (strip: ComicStrip, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      toast.info("Generando PDF...");
+      
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = strip.image_url;
+      });
+
+      const pdf = new jsPDF({
+        orientation: img.width > img.height ? "landscape" : "portrait",
+        unit: "px",
+        format: [img.width, img.height],
+      });
+
+      pdf.addImage(img, "PNG", 0, 0, img.width, img.height);
+      
+      const fileName = strip.title 
+        ? `${strip.title.replace(/[^a-z0-9]/gi, '_')}.pdf`
+        : `tira_${strip.publish_date}.pdf`;
+      
+      pdf.save(fileName);
+      toast.success("PDF descargado");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Error al generar el PDF");
     }
   };
 
@@ -115,33 +150,47 @@ const Archive = () => {
           {/* Grid of strips */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredStrips.map((strip) => (
-              <button
-                key={strip.id}
-                onClick={() => navigate(`/`)}
-                className="group text-left"
-              >
-                <div className="border-2 border-primary bg-card overflow-hidden shadow-newspaper hover:shadow-editorial transition-all">
-                  <img
-                    src={strip.image_url}
-                    alt={strip.title || `Tira del ${strip.publish_date}`}
-                    className="w-full h-64 object-cover grayscale group-hover:grayscale-0 transition-all"
-                  />
-                  <div className="p-6 border-t-2 border-primary">
-                    <p className="text-lg font-bold mb-2">
-                      {new Date(strip.publish_date).toLocaleDateString('es-ES', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      })}
-                    </p>
-                    {strip.title && (
-                      <p className="text-sm text-muted-foreground italic">
-                        {strip.title}
-                      </p>
-                    )}
+              <div key={strip.id} className="group">
+                <button
+                  onClick={() => navigate(`/`)}
+                  className="w-full text-left"
+                >
+                  <div className="border-2 border-primary bg-card overflow-hidden shadow-newspaper hover:shadow-editorial transition-all">
+                    <img
+                      src={strip.image_url}
+                      alt={strip.title || `Tira del ${strip.publish_date}`}
+                      className="w-full h-64 object-cover grayscale group-hover:grayscale-0 transition-all"
+                    />
+                    <div className="p-6 border-t-2 border-primary">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-lg font-bold mb-2">
+                            {new Date(strip.publish_date).toLocaleDateString('es-ES', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric'
+                            })}
+                          </p>
+                          {strip.title && (
+                            <p className="text-sm text-muted-foreground italic">
+                              {strip.title}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={(e) => downloadAsPDF(strip, e)}
+                          title="Descargar PDF para RRSS"
+                          className="shrink-0 border-primary hover:bg-primary hover:text-primary-foreground"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+              </div>
             ))}
           </div>
 
