@@ -57,6 +57,12 @@ const Index = () => {
         }
       ];
 
+      // Si no hay cliente de Supabase (GitHub Pages), usar solo datos locales
+      if (!supabase) {
+        setStrips(localStrips);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("comic_strips")
         .select("*")
