@@ -8,6 +8,9 @@ interface ComicStrip {
   title: string | null;
   image_url: string;
   publish_date: string;
+  media_type?: 'image' | 'video' | 'audio';
+  video_url?: string;
+  audio_url?: string;
 }
 
 interface StripViewerProps {
@@ -20,47 +23,71 @@ const StripViewer = ({ strips }: StripViewerProps) => {
   }
 
   const latestStrip = strips[0];
+  
+  // Detectar el tipo de medio basado en la URL
+  const getMediaType = (strip: ComicStrip): 'image' | 'video' | 'audio' => {
+    if (strip.media_type) return strip.media_type;
+    if (strip.video_url || strip.image_url.endsWith('.mp4')) return 'video';
+    if (strip.audio_url || strip.image_url.match(/\.(mp3|wav|ogg)$/)) return 'audio';
+    return 'image';
+  };
+  
+  const mediaType = getMediaType(latestStrip);
+  const mediaUrl = latestStrip.video_url || latestStrip.audio_url || latestStrip.image_url;
 
-  const downloadAsPDF = async () => {
+  const downloadMedia = async () => {
     try {
-      toast.info("Generando PDF a ancho completo...");
-      
-      const img = new Image();
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = latestStrip.image_url;
-      });
+      if (mediaType === 'video' || mediaType === 'audio') {
+        // Descarga directa para video/audio
+        toast.info("Descargando archivo...");
+        const link = document.createElement('a');
+        link.href = mediaUrl;
+        link.download = `${latestStrip.title || 'Porteria'}_${latestStrip.publish_date}.mp4`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Descarga iniciada");
+      } else {
+        // PDF para imágenes
+        toast.info("Generando PDF a ancho completo...");
+        
+        const img = new Image();
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = latestStrip.image_url;
+        });
 
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
 
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const margin = 10;
-      const maxWidth = pageWidth - (2 * margin);
-      
-      const aspectRatio = img.height / img.width;
-      const imageHeight = maxWidth * aspectRatio;
-      
-      const finalHeight = Math.min(imageHeight, pageHeight - (2 * margin));
-      const finalWidth = finalHeight / aspectRatio;
-      
-      const x = (pageWidth - finalWidth) / 2;
-      const y = (pageHeight - finalHeight) / 2;
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const margin = 10;
+        const maxWidth = pageWidth - (2 * margin);
+        
+        const aspectRatio = img.height / img.width;
+        const imageHeight = maxWidth * aspectRatio;
+        
+        const finalHeight = Math.min(imageHeight, pageHeight - (2 * margin));
+        const finalWidth = finalHeight / aspectRatio;
+        
+        const x = (pageWidth - finalWidth) / 2;
+        const y = (pageHeight - finalHeight) / 2;
 
-      pdf.addImage(img, "PNG", x, y, finalWidth, finalHeight);
-      
-      const fileName = `${latestStrip.title || 'Porteria'}_${latestStrip.publish_date}.pdf`;
-      pdf.save(fileName);
-      
-      toast.success("PDF descargado a ancho completo");
+        pdf.addImage(img, "PNG", x, y, finalWidth, finalHeight);
+        
+        const fileName = `${latestStrip.title || 'Porteria'}_${latestStrip.publish_date}.pdf`;
+        pdf.save(fileName);
+        
+        toast.success("PDF descargado a ancho completo");
+      }
     } catch (error) {
-      console.error("Error generando PDF:", error);
-      toast.error("Error al generar PDF");
+      console.error("Error descargando:", error);
+      toast.error("Error al descargar");
     }
   };
 
@@ -86,24 +113,56 @@ const StripViewer = ({ strips }: StripViewerProps) => {
           )}
         </div>
 
-        {/* Comic strip */}
+        {/* Comic strip / Video / Audio */}
         <div className="relative bg-card border-2 border-primary p-4 md:p-8 shadow-editorial">
-          <img
-            src={latestStrip.image_url}
-            alt={`Tira cómica del ${latestStrip.publish_date}`}
-            className="w-full h-auto"
-          />
+          {mediaType === 'video' && (
+            <video
+              src={mediaUrl}
+              controls
+              className="w-full h-auto"
+              poster={latestStrip.image_url !== mediaUrl ? latestStrip.image_url : undefined}
+            >
+              Tu navegador no soporta video HTML5.
+            </video>
+          )}
+          
+          {mediaType === 'audio' && (
+            <div className="space-y-4">
+              {latestStrip.image_url && !latestStrip.image_url.match(/\.(mp3|wav|ogg|mp4)$/) && (
+                <img
+                  src={latestStrip.image_url}
+                  alt={`Portada de ${latestStrip.title || 'audio'}`}
+                  className="w-full h-auto mb-4"
+                />
+              )}
+              <audio
+                src={mediaUrl}
+                controls
+                className="w-full"
+              >
+                Tu navegador no soporta audio HTML5.
+              </audio>
+            </div>
+          )}
+          
+          {mediaType === 'image' && (
+            <img
+              src={latestStrip.image_url}
+              alt={`Tira cómica del ${latestStrip.publish_date}`}
+              className="w-full h-auto"
+            />
+          )}
         </div>
 
         {/* Download Button */}
         <div className="flex justify-center mt-8">
           <Button
-            onClick={downloadAsPDF}
+            onClick={downloadMedia}
             size="lg"
             className="gap-2 shadow-editorial"
           >
             <Download className="h-5 w-5" />
-            Descargar PDF a ancho completo
+            {mediaType === 'image' ? 'Descargar PDF a ancho completo' : 'Descargar archivo'}
           </Button>
         </div>
       </div>

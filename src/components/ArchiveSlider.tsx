@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Video, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ComicStrip {
@@ -8,6 +8,7 @@ interface ComicStrip {
   imageUrl: string;
   date: string;
   title?: string;
+  mediaType?: 'image' | 'video' | 'audio';
 }
 
 interface ArchiveSliderProps {
@@ -89,12 +90,22 @@ const ArchiveSlider = ({ strips, onStripClick }: ArchiveSliderProps) => {
                   className="flex-shrink-0 group"
                 >
                   <div className="w-72 border-2 border-primary bg-card overflow-hidden shadow-newspaper hover:shadow-editorial transition-all hover:scale-[1.02]">
-                    <div className="aspect-[4/3] overflow-hidden">
+                    <div className="aspect-[4/3] overflow-hidden relative">
                       <img
                         src={strip.imageUrl}
                         alt={`Tira del ${strip.date}`}
                         className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
                       />
+                      {strip.mediaType === 'video' && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <Video className="h-12 w-12 text-white" />
+                        </div>
+                      )}
+                      {strip.mediaType === 'audio' && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <Music className="h-12 w-12 text-white" />
+                        </div>
+                      )}
                     </div>
                     <div className="p-4 border-t-2 border-primary">
                       <p className="text-sm font-medium">

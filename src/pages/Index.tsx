@@ -13,6 +13,9 @@ interface ComicStrip {
   title: string | null;
   image_url: string;
   publish_date: string;
+  media_type?: 'image' | 'video' | 'audio';
+  video_url?: string;
+  audio_url?: string;
 }
 
 const Index = () => {
@@ -131,6 +134,7 @@ const Index = () => {
               imageUrl: s.image_url,
               date: s.publish_date,
               title: s.title || undefined,
+              mediaType: s.media_type,
             }))}
             onStripClick={(id) => navigate(`/archivo`)}
           />
