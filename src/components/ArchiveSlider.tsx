@@ -90,20 +90,30 @@ const ArchiveSlider = ({ strips, onStripClick }: ArchiveSliderProps) => {
                   className="flex-shrink-0 group"
                 >
                   <div className="w-72 border-2 border-primary bg-card overflow-hidden shadow-newspaper hover:shadow-editorial transition-all hover:scale-[1.02]">
-                    <div className="aspect-[4/3] overflow-hidden relative">
+                    <div className="aspect-[4/3] overflow-hidden relative bg-muted">
                       <img
                         src={strip.imageUrl}
                         alt={`Tira del ${strip.date}`}
                         className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
                       />
                       {strip.mediaType === 'video' && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                          <Video className="h-12 w-12 text-white" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                          <div className="text-center">
+                            <Video className="h-16 w-16 text-white mb-2 mx-auto drop-shadow-lg" />
+                            <span className="text-xs font-medium text-white uppercase tracking-wider bg-primary/90 px-3 py-1 rounded">
+                              Video
+                            </span>
+                          </div>
                         </div>
                       )}
                       {strip.mediaType === 'audio' && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                          <Music className="h-12 w-12 text-white" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                          <div className="text-center">
+                            <Music className="h-16 w-16 text-white mb-2 mx-auto drop-shadow-lg" />
+                            <span className="text-xs font-medium text-white uppercase tracking-wider bg-accent/90 px-3 py-1 rounded">
+                              Audio
+                            </span>
+                          </div>
                         </div>
                       )}
                     </div>

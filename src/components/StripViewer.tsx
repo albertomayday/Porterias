@@ -116,32 +116,49 @@ const StripViewer = ({ strips }: StripViewerProps) => {
         {/* Comic strip / Video / Audio */}
         <div className="relative bg-card border-2 border-primary p-4 md:p-8 shadow-editorial">
           {mediaType === 'video' && (
-            <video
-              src={mediaUrl}
-              controls
-              className="w-full h-auto"
-              poster={latestStrip.image_url !== mediaUrl ? latestStrip.image_url : undefined}
-            >
-              Tu navegador no soporta video HTML5.
-            </video>
+            <div className="space-y-2">
+              <video
+                src={mediaUrl}
+                controls
+                controlsList="nodownload"
+                className="w-full h-auto rounded bg-background"
+                style={{ maxHeight: '70vh' }}
+                poster={latestStrip.image_url !== mediaUrl ? latestStrip.image_url : undefined}
+                preload="metadata"
+              >
+                Tu navegador no soporta video HTML5.
+              </video>
+              <p className="text-xs text-muted-foreground text-center">
+                Formato: MP4 • Usa los controles para reproducir, pausar y ajustar volumen
+              </p>
+            </div>
           )}
           
           {mediaType === 'audio' && (
             <div className="space-y-4">
               {latestStrip.image_url && !latestStrip.image_url.match(/\.(mp3|wav|ogg|mp4)$/) && (
-                <img
-                  src={latestStrip.image_url}
-                  alt={`Portada de ${latestStrip.title || 'audio'}`}
-                  className="w-full h-auto mb-4"
-                />
+                <div className="flex justify-center bg-muted/30 p-8 rounded">
+                  <img
+                    src={latestStrip.image_url}
+                    alt={`Portada de ${latestStrip.title || 'audio'}`}
+                    className="max-w-md w-full h-auto rounded shadow-lg"
+                  />
+                </div>
               )}
-              <audio
-                src={mediaUrl}
-                controls
-                className="w-full"
-              >
-                Tu navegador no soporta audio HTML5.
-              </audio>
+              <div className="bg-background p-4 rounded">
+                <audio
+                  src={mediaUrl}
+                  controls
+                  controlsList="nodownload"
+                  className="w-full"
+                  preload="metadata"
+                >
+                  Tu navegador no soporta audio HTML5.
+                </audio>
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                Formato: Audio • Usa los controles para reproducir y ajustar volumen
+              </p>
             </div>
           )}
           
