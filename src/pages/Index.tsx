@@ -34,25 +34,25 @@ const Index = () => {
         {
           id: "local-001",
           title: "El Nuevo Inquilino",
-          image_url: "./strips/strip-001.png",
+          image_url: "/Porterias/strips/strip-001.png",
           publish_date: "2025-12-01"
         },
         {
           id: "local-002",
           title: "Paquetería Confusa",
-          image_url: "./strips/strip-002.png",
+          image_url: "/Porterias/strips/strip-002.png",
           publish_date: "2025-12-02"
         },
         {
           id: "local-003",
           title: "Reunión de Consorcio",
-          image_url: "./strips/strip-003.png",
+          image_url: "/Porterias/strips/strip-003.png",
           publish_date: "2025-12-03"
         },
         {
           id: "local-004",
           title: "La Conexión WiFi",
-          image_url: "./strips/strip-004.png",
+          image_url: "/Porterias/strips/strip-004.png",
           publish_date: "2025-12-04"
         }
       ];
@@ -76,13 +76,13 @@ const Index = () => {
         {
           id: "local-001",
           title: "El Nuevo Inquilino",
-          image_url: "./strips/strip-001.png",
+          image_url: "/Porterias/strips/strip-001.png",
           publish_date: "2025-12-01"
         },
         {
           id: "local-002",
           title: "Paquetería Confusa",
-          image_url: "./strips/strip-002.png",
+          image_url: "/Porterias/strips/strip-002.png",
           publish_date: "2025-12-02"
         }
       ];
