@@ -27,13 +27,13 @@ const StripViewer = ({ strips }: StripViewerProps) => {
   // Detectar el tipo de medio basado en la URL
   const getMediaType = (strip: ComicStrip): 'image' | 'video' | 'audio' => {
     if (strip.media_type) return strip.media_type;
-    if (strip.video_url || strip.image_url.endsWith('.mp4')) return 'video';
-    if (strip.audio_url || strip.image_url.match(/\.(mp3|wav|ogg)$/)) return 'audio';
+    if (strip.video_url || (strip.image_url && strip.image_url.endsWith('.mp4'))) return 'video';
+    if (strip.audio_url || (strip.image_url && strip.image_url.match(/\.(mp3|wav|ogg)$/))) return 'audio';
     return 'image';
   };
   
   const mediaType = getMediaType(latestStrip);
-  const mediaUrl = latestStrip.video_url || latestStrip.audio_url || latestStrip.image_url;
+  const mediaUrl = latestStrip.video_url || latestStrip.audio_url || latestStrip.image_url || '';
 
   const downloadMedia = async () => {
     try {
