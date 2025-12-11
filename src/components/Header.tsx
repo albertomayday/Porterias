@@ -24,6 +24,12 @@ const Header = () => {
               Archivo
             </Link>
             <Link 
+              to="/porteria" 
+              className="text-sm uppercase tracking-wider font-medium hover:opacity-60 transition-opacity"
+            >
+              Portería
+            </Link>
+            <Link 
               to="/sobre-mi" 
               className="text-sm uppercase tracking-wider font-medium hover:opacity-60 transition-opacity"
             >

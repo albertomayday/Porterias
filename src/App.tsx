@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Archive from "./pages/Archive";
 import About from "./pages/About";
 import Admin from "./pages/Admin";
+import Porteria from "./pages/Porteria";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/archivo" element={<Archive />} />
+          <Route path="/porteria" element={<Porteria />} />
           <Route path="/sobre-mi" element={<About />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
