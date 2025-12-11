@@ -1,0 +1,18 @@
+{
+  "strips": [
+    {
+      "id": "mj04x675v96jx94scu",
+      "title": "El Nuevo Inquilino",
+      "publish_date": "2025-12-09",
+      "image_url": "/Porteria/strips/strip-002.png",
+      "media_type": "image"
+    },
+    {
+      "id": "001",
+      "title": "Bienvenido a Porteria",
+      "image_url": "/Porteria/strips/strip-001.png",
+      "publish_date": "2025-12-10",
+      "media_type": "image"
+    }
+  ]
+}

@@ -1,17 +1,14 @@
-import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
-import "./index.css";
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import App from './App'
 
-// Handle GitHub Pages SPA redirect
-const redirect = sessionStorage.getItem('gh-pages-redirect');
-if (redirect) {
-  sessionStorage.removeItem('gh-pages-redirect');
-  window.history.replaceState(null, '', redirect);
-}
+const basename = process.env.NODE_ENV === 'production' ? '/Porterias' : '/'
 
-const rootElement = document.getElementById("root");
-if (!rootElement) {
-  throw new Error("Root element not found");
-}
-
-createRoot(rootElement).render(<App />);
+createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter basename={basename}>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>,
+)
