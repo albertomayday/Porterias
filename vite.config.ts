@@ -19,4 +19,10 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    // Replace GitHub token with empty string in production builds
+    'import.meta.env.VITE_GITHUB_TOKEN': mode === 'production' 
+      ? JSON.stringify('')
+      : undefined,
+  },
 }));
