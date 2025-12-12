@@ -230,31 +230,35 @@ const Admin = () => {
     setUploading(true);
 
     try {
+      // Upload file to Supabase Storage
+      const fileExt = selectedFile.name.split('.').pop()?.toLowerCase();
+      const sanitizedFileName = `${publishDate}-${Date.now()}.${fileExt}`;
+      const filePath = sanitizedFileName;
+
+      const { error: uploadError } = await supabase.storage
+        .from("comic-strips")
+        .upload(filePath, selectedFile);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from("comic-strips")
+        .getPublicUrl(filePath);
+
       // Determine media type
       const mediaType = isVideoFile(selectedFile) ? 'video' : 'image';
-      
-      // Read file as data URL
-      const reader = new FileReader();
-      const fileDataUrl = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(selectedFile);
-      });
 
-      // Create new strip entry
-      const newStrip = {
-        id: `strip-${Date.now()}`,
-        title: sanitizedTitle || null,
-        image_url: mediaType === 'image' ? fileDataUrl : '',
-        video_url: mediaType === 'video' ? fileDataUrl : null,
-        media_type: mediaType,
-        publish_date: publishDate,
-      };
-
-      // Insert strip record in Supabase
+      // Insert strip record
       const { error: insertError } = await supabase
         .from("comic_strips")
-        .insert(newStrip);
+        .insert({
+          title: sanitizedTitle || null,
+          image_url: publicUrl,
+          video_url: mediaType === 'video' ? publicUrl : null,
+          media_type: mediaType,
+          publish_date: publishDate,
+        });
 
       if (insertError) throw insertError;
 
@@ -274,7 +278,18 @@ const Admin = () => {
     if (!confirm("¿Eliminar esta tira?")) return;
 
     try {
-      // Delete from database only (data URLs are embedded, no storage files)
+      // Extract file path from URL
+      const urlParts = strip.image_url.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from("comic-strips")
+        .remove([fileName]);
+
+      if (storageError) throw storageError;
+
+      // Delete from database
       const { error: dbError } = await supabase
         .from("comic_strips")
         .delete()
