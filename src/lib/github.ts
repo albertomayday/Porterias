@@ -3,6 +3,8 @@ const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN;
 const GITHUB_OWNER = 'albertomaydayjhondoe';
 const GITHUB_REPO = 'Porterias';
 const GITHUB_BRANCH = 'main';
+const IS_PRODUCTION = import.meta.env.PROD;
+const NETLIFY_FUNCTION_URL = '/.netlify/functions/upload';
 
 interface FileUpload {
   path: string;
@@ -16,15 +18,17 @@ export async function uploadToGitHub(file: File, metadata: {
   mediaType: 'image' | 'video';
 }): Promise<{ success: boolean; url: string; error?: string }> {
   try {
-    if (!GITHUB_TOKEN) {
-      throw new Error('GitHub token not configured. This feature only works in development mode (npm run dev)');
-    }
-
     // Read file as base64
     const base64Content = await fileToBase64(file);
     const fileExt = file.name.split('.').pop()?.toLowerCase();
     const timestamp = Date.now();
     const fileName = `strip-${metadata.publishDate}-${timestamp}.${fileExt}`;
+
+    // Use serverless function in production, direct API in development
+    if (IS_PRODUCTION || !GITHUB_TOKEN) {
+      return await uploadViaNetlify(base64Content, fileName, metadata);
+    }
+
     const filePath = `src/assets/strips/${fileName}`;
 
     // Get current strips.json
@@ -101,6 +105,41 @@ async function fetchGitHubFile(path: string): Promise<{ content: string; sha: st
   }
 
   return response.json();
+}
+
+async function uploadViaNetlify(
+  base64Content: string,
+  fileName: string,
+  metadata: { title: string; publishDate: string; mediaType: 'image' | 'video' }
+): Promise<{ success: boolean; url: string; error?: string }> {
+  try {
+    const response = await fetch(NETLIFY_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        file: base64Content,
+        fileName,
+        title: metadata.title,
+        publishDate: metadata.publishDate,
+        mediaType: metadata.mediaType,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Upload failed');
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    return {
+      success: false,
+      url: '',
+      error: error.message,
+    };
+  }
 }
 
 async function uploadFile(path: string, base64Content: string, message: string, sha?: string): Promise<void> {
