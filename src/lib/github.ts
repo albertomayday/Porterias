@@ -17,7 +17,7 @@ export async function uploadToGitHub(file: File, metadata: {
 }): Promise<{ success: boolean; url: string; error?: string }> {
   try {
     if (!GITHUB_TOKEN) {
-      throw new Error('GitHub token not configured. Set VITE_GITHUB_TOKEN in .env');
+      throw new Error('GitHub token not configured. This feature only works in development mode (npm run dev)');
     }
 
     // Read file as base64

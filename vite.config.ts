@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    // Replace GitHub token with empty string in production builds
+    // Never include GitHub token in production builds for security
     'import.meta.env.VITE_GITHUB_TOKEN': mode === 'production' 
       ? JSON.stringify('')
       : undefined,
