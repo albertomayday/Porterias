@@ -1,200 +1,53 @@
-name: 🚀 Force Replace Deploy to Porteria
+name: 🚀 Deploy to GitHub Pages
 
 on:
-  workflow_dispatch:
-    inputs:
-      confirm_deployment:
-        description: 'Type "CONFIRM" to proceed with DESTRUCTIVE deployment'
-        required: true
-        default: ''
   push:
     branches: [ main ]
     paths: [ 'src/**', 'public/**', 'package.json', 'vite.config.ts' ]
 
-env:
-  TARGET_REPO: albertomayday/Porterias
-  SOURCE_BUILD_DIR: dist
-
 permissions:
-  contents: read
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  force-replace-deploy:
-    name: 🔥 Force Replace Porteria Repository
+  build:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: 🛡️ Validate Deployment Confirmation
-      if: github.event_name == 'workflow_dispatch'
-      run: |
-        if [ "${{ github.event.inputs.confirm_deployment }}" != "CONFIRM" ]; then
-          echo "❌ Deployment cancelled: Confirmation required"
-          echo "ℹ️  Please type 'CONFIRM' in the input field to proceed"
-          exit 1
-        fi
-        echo "✅ Deployment confirmed by user input"
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: ⚠️ Deployment Warning
-      run: |
-        echo "🚨 WARNING: This workflow will DESTRUCTIVELY replace ALL content in:"
-        echo "   Repository: ${{ env.TARGET_REPO }}"
-        echo "   Branch: main"
-        echo ""
-        echo "📋 Actions to be performed:"
-        echo "   1. Create backup branch with timestamp"
-        echo "   2. DELETE all existing content (except .git)"
-        echo "   3. Replace with build artifacts from this repository"
-        echo "   4. Force push to overwrite main branch"
-        echo ""
-        echo "🔒 Backup will be created: backup-before-force-deploy-$(date -u +%Y%m%dT%H%M%SZ)"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
 
-    - name: 🔍 Checkout Source Repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        path: source
+      - name: Install dependencies
+        run: npm ci
 
-    - name: 📦 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: source/package-lock.json
+      - name: Build
+        run: npm run build
 
-    - name: 🏗️ Install Dependencies and Build
-      run: |
-        cd source
-        npm ci
-        npm run build
-        echo "✅ Build completed successfully"
-        
-        # Verify build directory exists and has content
-        if [ ! -d "${{ env.SOURCE_BUILD_DIR }}" ]; then
-          echo "❌ Build directory '${{ env.SOURCE_BUILD_DIR }}' not found"
-          exit 1
-        fi
-        
-        file_count=$(find ${{ env.SOURCE_BUILD_DIR }} -type f | wc -l)
-        if [ "$file_count" -eq 0 ]; then
-          echo "❌ Build directory is empty"
-          exit 1
-        fi
-        
-        echo "📊 Build artifacts: $file_count files generated"
-        ls -la ${{ env.SOURCE_BUILD_DIR }}/
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
-    - name: 🎯 Checkout Target Repository
-      uses: actions/checkout@v4
-      with:
-        repository: ${{ env.TARGET_REPO }}
-        token: ${{ secrets.TARGET_REPO_PAT }}
-        fetch-depth: 0
-        path: porteria
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
 
-    - name: 🔧 Configure Git for Target Repository
-      run: |
-        cd porteria
-        git config user.name "GitHub Actions Bot"
-        git config user.email "actions@github.com"
-        echo "✅ Git configuration set"
-
-    - name: 💾 Create Backup Branch
-      run: |
-        cd porteria
-        backup_branch="backup-before-force-deploy-$(date -u +%Y%m%dT%H%M%SZ)"
-        echo "📋 Creating backup branch: $backup_branch"
-        
-        git checkout main
-        git checkout -b "$backup_branch"
-        git push origin "$backup_branch"
-        
-        echo "✅ Backup branch created and pushed: $backup_branch"
-        echo "🔗 Backup available at: https://github.com/${{ env.TARGET_REPO }}/tree/$backup_branch"
-
-    - name: 🗑️ Clear Target Repository Content
-      run: |
-        cd porteria
-        git checkout main
-        
-        echo "🧹 Removing all content except .git directory..."
-        find . -maxdepth 1 \
-          ! -name '.git' \
-          ! -name '.' \
-          ! -name '..' \
-          -exec rm -rf {} \; 2>/dev/null || true
-        
-        echo "✅ Target repository cleared"
-
-    - name: 📋 Copy Build Artifacts
-      run: |
-        echo "📦 Copying build artifacts from source to target..."
-        cp -r source/${{ env.SOURCE_BUILD_DIR }}/* porteria/
-        
-        # Remove node_modules if accidentally copied
-        if [ -d "porteria/node_modules" ]; then
-          rm -rf porteria/node_modules
-          echo "🧹 Removed node_modules directory"
-        fi
-        
-        cd porteria
-        file_count=$(find . -maxdepth 1 -type f | wc -l)
-        echo "📊 Files copied to target: $file_count"
-        ls -la
-
-    - name: 📝 Commit and Force Push Changes
-      run: |
-        cd porteria
-        
-        # Check if there are changes to commit
-        if git diff --quiet && git diff --cached --quiet; then
-          echo "ℹ️  No changes detected, skipping commit"
-          exit 0
-        fi
-        
-        git add .
-        git status
-        
-        commit_message="🚀 Force deploy Daily Paper Comics - $(date -u +%Y-%m-%d\ %H:%M:%S\ UTC)
-
-        🔄 Automated deployment from daily-paper-comics repository
-        📦 Source commit: ${{ github.sha }}
-        🏗️ Build artifacts deployed to GitHub Pages
-        
-        ⚠️  This commit REPLACES all previous content
-        💾 Previous content backed up in: backup-before-force-deploy-$(date -u +%Y%m%dT%H%M%SZ)"
-        
-        git commit -m "$commit_message"
-        
-        echo "🚀 Force pushing to main branch..."
-        git push --force origin HEAD:main
-        
-        echo "✅ Deployment completed successfully!"
-        echo "🌐 GitHub Pages will be available at: https://albertomaydayjhondoe.github.io/Porteria/"
-
-    - name: 📊 Deployment Summary
-      if: success()
-      run: |
-        echo "🎉 DEPLOYMENT SUCCESSFUL!"
-        echo ""
-        echo "📋 Summary:"
-        echo "   ✅ Source repository: daily-paper-comics"
-        echo "   ✅ Target repository: ${{ env.TARGET_REPO }}"
-        echo "   ✅ Build artifacts deployed"
-        echo "   ✅ Backup branch created"
-        echo "   ✅ Main branch force updated"
-        echo ""
-        echo "🌐 Live URL: https://albertomaydayjhondoe.github.io/Porteria/"
-        echo "💾 Backup: https://github.com/${{ env.TARGET_REPO }}/branches"
-
-    - name: ❌ Deployment Failure Notification
-      if: failure()
-      run: |
-        echo "💥 DEPLOYMENT FAILED!"
-        echo ""
-        echo "🔍 Troubleshooting checklist:"
-        echo "   - Verify TARGET_REPO_PAT secret is configured"
-        echo "   - Ensure PAT has 'repo' scope permissions"
-        echo "   - Check target repository exists and is accessible"
-        echo "   - Verify build process completed successfully"
-        echo ""
-        echo "📚 See README_DEPLOY.md for detailed setup instructions"
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
