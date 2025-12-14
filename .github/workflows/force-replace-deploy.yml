@@ -12,7 +12,7 @@ on:
     paths: [ 'src/**', 'public/**', 'package.json', 'vite.config.ts' ]
 
 env:
-  TARGET_REPO: albertomaydayjhondoe/Porteria
+  TARGET_REPO: albertomayday/Porterias
   SOURCE_BUILD_DIR: dist
 
 permissions:
