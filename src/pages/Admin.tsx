@@ -3,20 +3,20 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Upload, Trash2, Lock, LogOut, Shield, Download } from "lucide-react";
-import { User, Session } from "@supabase/supabase-js";
+import { Loader2, Upload, Trash2, LogOut, Shield } from "lucide-react";
 import {
-  SECURITY_CONFIG,
   sanitizeInput,
-  validateEmail,
   validateDate,
   validateFileType,
   validateFileSize,
   generateSecureFilename,
   isVideoFile
 } from "@/lib/security";
+
+const REPO_OWNER = 'albertomayday';
+const REPO_NAME = 'Porterias';
+const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN || 'ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'; // Replace with actual GitHub token
 
 interface ComicStrip {
   id: string;
@@ -26,63 +26,16 @@ interface ComicStrip {
 }
 
 const Admin = () => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
-  const [loginAttempts, setLoginAttempts] = useState(0);
-  const [lockoutTime, setLockoutTime] = useState<number | null>(null);
   
   const [strips, setStrips] = useState<ComicStrip[]>([]);
   const [uploading, setUploading] = useState(false);
   const [title, setTitle] = useState("");
   const [publishDate, setPublishDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-  // Set up auth state listener
-  useEffect(() => {
-    if (!supabase) return;
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Check admin role with setTimeout to avoid deadlock
-        if (session?.user) {
-          setTimeout(() => {
-            checkAdminRole(session.user.id);
-          }, 0);
-        } else {
-          setIsAdmin(false);
-          setLoading(false);
-        }
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        checkAdminRole(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Load strips when admin is confirmed
-  useEffect(() => {
-    if (!supabase) return;
-    if (isAdmin) {
-      loadStrips();
-    }
-  }, [isAdmin]);
 
   // Check if Supabase is available
   if (!supabase) {
@@ -106,108 +59,38 @@ const Admin = () => {
     );
   }
 
-  const checkAdminRole = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
-
-      if (error) throw error;
-      setIsAdmin(!!data);
-    } catch (error: unknown) {
-      console.error("Error checking admin role:", error.message);
-      setIsAdmin(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Check lockout
-    if (lockoutTime && Date.now() < lockoutTime) {
-      const remainingSeconds = Math.ceil((lockoutTime - Date.now()) / 1000);
-      toast.error(`Demasiados intentos. Espera ${remainingSeconds} segundos`);
-      return;
-    }
-    
-    // Input validation
-    if (!email || !password) {
-      toast.error("Introduce email y contraseña");
-      return;
-    }
-    
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast.error("Email no válido");
-      return;
-    }
-    
-    // Password minimum length
-    if (password.length < 6) {
-      toast.error("Contraseña demasiado corta");
-      return;
-    }
 
-    setAuthLoading(true);
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-      });
-
-      if (error) {
-        // Increment failed attempts
-        const newAttempts = loginAttempts + 1;
-        setLoginAttempts(newAttempts);
-        
-        // Lock after 5 failed attempts for 5 minutes
-        if (newAttempts >= 5) {
-          setLockoutTime(Date.now() + 5 * 60 * 1000);
-          toast.error("Demasiados intentos fallidos. Bloqueado por 5 minutos");
-        } else {
-          toast.error("Credenciales incorrectas");
-        }
-        throw error;
-      }
-      
-      // Reset on success
-      setLoginAttempts(0);
-      setLockoutTime(null);
-      toast.success("Sesión iniciada");
-      
-      // Clear password from state
+    if (password === 'Bac2317?') {
+      setIsLoggedIn(true);
+      toast.success("Acceso concedido");
       setPassword("");
-    } catch (error: unknown) {
-      // Error already handled above
-    } finally {
-      setAuthLoading(false);
+      loadStrips();
+    } else {
+      toast.error("Contraseña incorrecta");
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setIsAdmin(false);
-    toast.success("Sesión cerrada");
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setStrips([]);
   };
 
   const loadStrips = async () => {
     try {
-      const { data, error } = await supabase
-        .from("comic_strips")
-        .select("*")
-        .order("publish_date", { ascending: false });
-
-      if (error) throw error;
-      setStrips(data || []);
-    } catch (error: unknown) {
-      toast.error("Error al cargar tiras: " + error.message);
+      const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/public/data/strips.json`, {
+        headers: { Authorization: `token ${GITHUB_TOKEN}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch strips');
+      const data = await response.json();
+      const content = JSON.parse(atob(data.content));
+      setStrips(content.strips);
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Error cargando tiras: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -260,26 +143,44 @@ const Admin = () => {
       const timestamp = Date.now();
       const fileName = `strip-${publishDate}-${timestamp}.${fileExt}`;
 
-      // Download file with proper name for manual upload
-      const url = URL.createObjectURL(selectedFile);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Upload file to GitHub
+      const base64Content = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(',')[1]);
+        };
+        reader.readAsDataURL(selectedFile);
+      });
 
-      // Load current strips.json to generate next ID
-      const response = await fetch('/Porterias/data/strips.json');
-      const currentStrips = await response.json();
-      const maxId = currentStrips.strips.reduce((max: number, s: { id: string }) => {
+      const uploadResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/public/strips/${fileName}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `token ${GITHUB_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Add strip: ${sanitizedTitle || fileName}`,
+          content: base64Content
+        })
+      });
+
+      if (!uploadResponse.ok) throw new Error('Failed to upload file');
+
+      // Get current JSON
+      const jsonResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/public/data/strips.json`, {
+        headers: { Authorization: `token ${GITHUB_TOKEN}` }
+      });
+      const jsonData = await jsonResponse.json();
+      const currentContent = JSON.parse(atob(jsonData.content));
+
+      // Generate new ID
+      const maxId = currentContent.strips.reduce((max: number, s: any) => {
         const num = parseInt(s.id.replace(/\D/g, ''));
         return num > max ? num : max;
       }, 0);
       const newId = `strip-${String(maxId + 1).padStart(3, '0')}`;
 
-      // Create JSON entry
       const newStrip = {
         id: newId,
         title: sanitizedTitle || null,
@@ -289,37 +190,30 @@ const Admin = () => {
         publish_date: publishDate,
       };
 
-      // Generate instructions
-      const instructions = `
-✅ Archivo descargado: ${fileName}
+      currentContent.strips.unshift(newStrip);
+      const newJsonContent = btoa(JSON.stringify(currentContent, null, 2));
 
-📋 Pasos para completar:
+      const updateResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/public/data/strips.json`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `token ${GITHUB_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Add strip: ${sanitizedTitle || fileName}`,
+          content: newJsonContent,
+          sha: jsonData.sha
+        })
+      });
 
-1. Mueve el archivo a:
-   public/strips/${fileName}
+      if (!updateResponse.ok) throw new Error('Failed to update JSON');
 
-2. Edita public/data/strips.json y añade al inicio del array "strips":
-${JSON.stringify(newStrip, null, 2)}
-
-3. Ejecuta en terminal:
-   git add public/strips/${fileName} public/data/strips.json
-   git commit -m "Add strip: ${sanitizedTitle || fileName}"
-   git push && npm run deploy
-
-O simplemente ejecuta:
-   npm run upload
-      `.trim();
-
-      // Copy to clipboard
-      await navigator.clipboard.writeText(instructions);
-      
-      toast.success("Archivo descargado e instrucciones copiadas al portapapeles");
-      alert(instructions);
-
+      toast.success("Tira subida correctamente");
       setTitle("");
       setPublishDate(new Date().toISOString().split('T')[0]);
       setSelectedFile(null);
-    } catch (error: unknown) {
+      loadStrips(); // reload
+    } catch (error: any) {
       toast.error("Error: " + error.message);
     } finally {
       setUploading(false);
@@ -330,28 +224,53 @@ O simplemente ejecuta:
     if (!confirm("¿Eliminar esta tira?")) return;
 
     try {
-      // Extract filename from URL
-      const urlParts = (strip.image_url || '').split('/');
+      // Delete file
+      const urlParts = (strip.image_url || strip.video_url || '').split('/');
       const fileName = urlParts[urlParts.length - 1];
+      if (fileName) {
+        const fileResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/public/strips/${fileName}`, {
+          headers: { Authorization: `token ${GITHUB_TOKEN}` }
+        });
+        if (fileResponse.ok) {
+          const fileData = await fileResponse.json();
+          await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/public/strips/${fileName}`, {
+            method: 'DELETE',
+            headers: {
+              Authorization: `token ${GITHUB_TOKEN}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              message: `Remove strip: ${strip.id}`,
+              sha: fileData.sha
+            })
+          });
+        }
+      }
 
-      const instructions = `
-📋 Para eliminar la tira "${strip.title || strip.id}":
+      // Update JSON
+      const jsonResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/public/data/strips.json`, {
+        headers: { Authorization: `token ${GITHUB_TOKEN}` }
+      });
+      const jsonData = await jsonResponse.json();
+      const currentContent = JSON.parse(atob(jsonData.content));
+      currentContent.strips = currentContent.strips.filter((s: any) => s.id !== strip.id);
+      const newJsonContent = btoa(JSON.stringify(currentContent, null, 2));
+      await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/public/data/strips.json`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `token ${GITHUB_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Remove strip: ${strip.id}`,
+          content: newJsonContent,
+          sha: jsonData.sha
+        })
+      });
 
-1. Elimina el archivo:
-   rm public/strips/${fileName}
-
-2. Edita public/data/strips.json y elimina la entrada con id: "${strip.id}"
-
-3. Ejecuta:
-   git add public/strips/ public/data/strips.json
-   git commit -m "Remove strip: ${strip.id}"
-   git push && npm run deploy
-      `.trim();
-
-      await navigator.clipboard.writeText(instructions);
-      toast.success("Instrucciones copiadas al portapapeles");
-      alert(instructions);
-    } catch (error: unknown) {
+      toast.success("Tira eliminada");
+      loadStrips();
+    } catch (error: any) {
       toast.error("Error: " + error.message);
     }
   };
@@ -370,7 +289,7 @@ O simplemente ejecuta:
   }
 
   // Login screen
-  if (!user) {
+  if (!isLoggedIn) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -378,27 +297,20 @@ O simplemente ejecuta:
           <div className="w-full max-w-md">
             <div className="border-2 border-primary p-8 bg-card shadow-editorial">
               <div className="text-center mb-8">
-                <Lock className="h-12 w-12 mx-auto mb-4 text-primary" />
+                <Shield className="h-12 w-12 mx-auto mb-4 text-primary" />
                 <h1 className="text-3xl font-bold">Panel Admin</h1>
                 <p className="text-muted-foreground mt-2">
-                  Inicia sesión para acceder
+                  Introduce la contraseña para acceder
                 </p>
               </div>
               <form onSubmit={handleLogin} className="space-y-4">
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
-                  className="border-2 border-primary"
-                  autoFocus
-                />
                 <Input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Contraseña"
                   className="border-2 border-primary"
+                  autoFocus
                 />
                 <Button 
                   type="submit" 
@@ -423,12 +335,6 @@ O simplemente ejecuta:
       </div>
     );
   }
-
-  // Not admin screen
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
         <main className="flex-grow flex items-center justify-center py-16 px-6">
           <div className="w-full max-w-md text-center">
             <div className="border-2 border-primary p-8 bg-card shadow-editorial">
