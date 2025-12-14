@@ -20,7 +20,7 @@ const Porteria = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/Porterias/data/strips.json')
+    fetch('/Porteria/data/strips.json')
       .then(res => res.json())
       .then(data => {
         setStrips(data.strips || []);

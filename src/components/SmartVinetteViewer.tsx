@@ -208,7 +208,7 @@ const SmartVinetteViewer = ({ strips }: SmartVinetteViewerProps) => {
     if (separators.length === 0) {
       // No hay separadores claros, dividir uniformemente
       const aspectRatio = height / width;
-      let numPanels = Math.max(2, Math.min(6, Math.round(aspectRatio * 1.5)));
+      const numPanels = Math.max(2, Math.min(6, Math.round(aspectRatio * 1.5)));
       
       console.log(`📐 División uniforme: ${numPanels} paneles (aspecto: ${aspectRatio.toFixed(2)})`);
       

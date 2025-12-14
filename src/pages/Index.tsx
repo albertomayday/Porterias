@@ -4,8 +4,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import StripViewer from "@/components/StripViewer";
 import ArchiveSlider from "@/components/ArchiveSlider";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 interface ComicStrip {
@@ -29,175 +27,15 @@ const Index = () => {
 
   const loadStrips = async () => {
     try {
-      // Datos locales como respaldo
-      const localStrips = [
-        {
-          id: "local-020",
-          title: "Primera Tira",
-          image_url: "/Porterias/strips/strip-020.png",
-          publish_date: "2025-12-09"
-        },
-        {
-          id: "local-019",
-          title: "El Misterio del 3º B",
-          image_url: "/Porterias/strips/strip-019.png",
-          publish_date: "2025-12-08"
-        },
-        {
-          id: "local-018",
-          title: "Inspección Sanitaria",
-          image_url: "/Porterias/strips/strip-018.png",
-          publish_date: "2025-12-07"
-        },
-        {
-          id: "local-017",
-          title: "La Llave Perdida",
-          image_url: "/Porterias/strips/strip-017.png",
-          publish_date: "2025-12-06"
-        },
-        {
-          id: "local-016",
-          title: "Visita del Técnico",
-          image_url: "/Porterias/strips/strip-016.png",
-          publish_date: "2025-12-05"
-        },
-        {
-          id: "local-015",
-          title: "Día de Mudanza",
-          image_url: "/Porterias/strips/strip-015.png",
-          publish_date: "2025-12-04"
-        },
-        {
-          id: "local-014",
-          title: "Buzón Atascado",
-          image_url: "/Porterias/strips/strip-014.png",
-          publish_date: "2025-12-03"
-        },
-        {
-          id: "local-013",
-          title: "Navidad Anticipada",
-          image_url: "/Porterias/strips/strip-013.png",
-          publish_date: "2025-12-02"
-        },
-        {
-          id: "local-012",
-          title: "La Vecina Chismosa",
-          image_url: "/Porterias/strips/strip-012.png",
-          publish_date: "2025-12-01"
-        },
-        {
-          id: "local-011",
-          title: "Apagón General",
-          image_url: "/Porterias/strips/strip-011.png",
-          publish_date: "2025-11-30"
-        },
-        {
-          id: "local-010",
-          title: "El Cartero Sustituto",
-          image_url: "/Porterias/strips/strip-010.png",
-          publish_date: "2025-11-29"
-        },
-        {
-          id: "local-009",
-          title: "Reforma en el Ático",
-          image_url: "/Porterias/strips/strip-009.png",
-          publish_date: "2025-11-28"
-        },
-        {
-          id: "local-008",
-          title: "El Perro del 5º",
-          image_url: "/Porterias/strips/strip-008.png",
-          publish_date: "2025-11-27"
-        },
-        {
-          id: "local-007",
-          title: "Fiesta Nocturna",
-          image_url: "/Porterias/strips/strip-007.png",
-          publish_date: "2025-11-26"
-        },
-        {
-          id: "local-006",
-          title: "Horario de Basura",
-          image_url: "/Porterias/strips/strip-006.png",
-          publish_date: "2025-11-25"
-        },
-        {
-          id: "local-005",
-          title: "El Ascensor Averiado",
-          image_url: "/Porterias/strips/strip-005.png",
-          publish_date: "2025-11-24"
-        },
-        {
-          id: "local-004",
-          title: "La Conexión WiFi",
-          image_url: "/Porterias/strips/strip-004.png",
-          publish_date: "2025-11-23"
-        },
-        {
-          id: "local-003",
-          title: "Reunión de Consorcio",
-          image_url: "/Porterias/strips/strip-003.png",
-          publish_date: "2025-11-22"
-        },
-        {
-          id: "local-002",
-          title: "Paquetería Confusa",
-          image_url: "/Porterias/strips/strip-002.png",
-          publish_date: "2025-11-21"
-        },
-        {
-          id: "local-001",
-          title: "El Nuevo Inquilino",
-          image_url: "/Porterias/strips/strip-001.png",
-          publish_date: "2025-11-20"
-        }
-      ];
-
-      // Si no hay cliente de Supabase (GitHub Pages), usar solo datos locales
-      if (!supabase) {
-        setStrips(localStrips);
-        return;
+      const response = await fetch('/Porteria/data/strips.json');
+      if (!response.ok) {
+        throw new Error('Failed to fetch strips');
       }
-
-      const { data, error } = await supabase
-        .from("comic_strips")
-        .select("*")
-        .order("publish_date", { ascending: false });
-
-      if (error) {
-        // Si hay error con Supabase, usar datos locales
-        setStrips(localStrips);
-      } else {
-        // Combinar datos de Supabase con locales
-        const allStrips = [...(data || []), ...localStrips];
-        setStrips(allStrips.length > 0 ? allStrips : localStrips);
-      }
-    } catch (error: any) {
-      // Si falla completamente, usar datos locales completos
-      const localStrips = [
-        { id: "local-020", title: "Primera Tira", image_url: "/Porterias/strips/strip-020.png", publish_date: "2025-12-09" },
-        { id: "local-019", title: "El Misterio del 3º B", image_url: "/Porterias/strips/strip-019.png", publish_date: "2025-12-08" },
-        { id: "local-018", title: "Inspección Sanitaria", image_url: "/Porterias/strips/strip-018.png", publish_date: "2025-12-07" },
-        { id: "local-017", title: "La Llave Perdida", image_url: "/Porterias/strips/strip-017.png", publish_date: "2025-12-06" },
-        { id: "local-016", title: "Visita del Técnico", image_url: "/Porterias/strips/strip-016.png", publish_date: "2025-12-05" },
-        { id: "local-015", title: "Día de Mudanza", image_url: "/Porterias/strips/strip-015.png", publish_date: "2025-12-04" },
-        { id: "local-014", title: "Buzón Atascado", image_url: "/Porterias/strips/strip-014.png", publish_date: "2025-12-03" },
-        { id: "local-013", title: "Navidad Anticipada", image_url: "/Porterias/strips/strip-013.png", publish_date: "2025-12-02" },
-        { id: "local-012", title: "La Vecina Chismosa", image_url: "/Porterias/strips/strip-012.png", publish_date: "2025-12-01" },
-        { id: "local-011", title: "Apagón General", image_url: "/Porterias/strips/strip-011.png", publish_date: "2025-11-30" },
-        { id: "local-010", title: "El Cartero Sustituto", image_url: "/Porterias/strips/strip-010.png", publish_date: "2025-11-29" },
-        { id: "local-009", title: "Reforma en el Ático", image_url: "/Porterias/strips/strip-009.png", publish_date: "2025-11-28" },
-        { id: "local-008", title: "El Perro del 5º", image_url: "/Porterias/strips/strip-008.png", publish_date: "2025-11-27" },
-        { id: "local-007", title: "Fiesta Nocturna", image_url: "/Porterias/strips/strip-007.png", publish_date: "2025-11-26" },
-        { id: "local-006", title: "Horario de Basura", image_url: "/Porterias/strips/strip-006.png", publish_date: "2025-11-25" },
-        { id: "local-005", title: "El Ascensor Averiado", image_url: "/Porterias/strips/strip-005.png", publish_date: "2025-11-24" },
-        { id: "local-004", title: "La Conexión WiFi", image_url: "/Porterias/strips/strip-004.png", publish_date: "2025-11-23" },
-        { id: "local-003", title: "Reunión de Consorcio", image_url: "/Porterias/strips/strip-003.png", publish_date: "2025-11-22" },
-        { id: "local-002", title: "Paquetería Confusa", image_url: "/Porterias/strips/strip-002.png", publish_date: "2025-11-21" },
-        { id: "local-001", title: "El Nuevo Inquilino", image_url: "/Porterias/strips/strip-001.png", publish_date: "2025-11-20" }
-      ];
-      setStrips(localStrips);
-      console.log("Usando datos locales:", error);
+      const data = await response.json();
+      setStrips(data);
+    } catch (error) {
+      console.error('Error loading strips:', error);
+      setStrips([]);
     } finally {
       setLoading(false);
     }

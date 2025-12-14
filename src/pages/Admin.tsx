@@ -26,8 +26,8 @@ interface ComicStrip {
 }
 
 const Admin = () => {
-  const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
@@ -44,6 +44,7 @@ const Admin = () => {
 
   // Set up auth state listener
   useEffect(() => {
+    if (!supabase) return;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -77,10 +78,33 @@ const Admin = () => {
 
   // Load strips when admin is confirmed
   useEffect(() => {
+    if (!supabase) return;
     if (isAdmin) {
       loadStrips();
     }
   }, [isAdmin]);
+
+  // Check if Supabase is available
+  if (!supabase) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <Shield className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h1 className="text-2xl font-bold mb-4">Panel de Administración</h1>
+            <p className="text-muted-foreground mb-4">
+              No disponible en producción. Las tiras se cargan desde datos locales.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Para administrar tiras, usa el entorno de desarrollo local.
+            </p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   const checkAdminRole = async (userId: string) => {
     try {
@@ -93,7 +117,7 @@ const Admin = () => {
 
       if (error) throw error;
       setIsAdmin(!!data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error checking admin role:", error.message);
       setIsAdmin(false);
     } finally {
@@ -160,7 +184,7 @@ const Admin = () => {
       
       // Clear password from state
       setPassword("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Error already handled above
     } finally {
       setAuthLoading(false);
@@ -182,7 +206,7 @@ const Admin = () => {
 
       if (error) throw error;
       setStrips(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Error al cargar tiras: " + error.message);
     }
   };
@@ -249,7 +273,7 @@ const Admin = () => {
       // Load current strips.json to generate next ID
       const response = await fetch('/Porterias/data/strips.json');
       const currentStrips = await response.json();
-      const maxId = currentStrips.strips.reduce((max: number, s: any) => {
+      const maxId = currentStrips.strips.reduce((max: number, s: { id: string }) => {
         const num = parseInt(s.id.replace(/\D/g, ''));
         return num > max ? num : max;
       }, 0);
@@ -295,7 +319,7 @@ O simplemente ejecuta:
       setTitle("");
       setPublishDate(new Date().toISOString().split('T')[0]);
       setSelectedFile(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Error: " + error.message);
     } finally {
       setUploading(false);
@@ -327,7 +351,7 @@ O simplemente ejecuta:
       await navigator.clipboard.writeText(instructions);
       toast.success("Instrucciones copiadas al portapapeles");
       alert(instructions);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Error: " + error.message);
     }
   };
