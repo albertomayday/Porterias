@@ -16,7 +16,7 @@ import {
 
 const REPO_OWNER = 'albertomayday';
 const REPO_NAME = 'Porterias';
-const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN || 'ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'; // Replace with actual GitHub token
+const GITHUB_TOKEN = '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'; // GitHub token with repo access
 
 interface ComicStrip {
   id: string;
