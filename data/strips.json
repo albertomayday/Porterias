@@ -1,0 +1,151 @@
+{
+  "strips": [
+    {
+      "id": "local-021",
+      "title": "Tira del Día",
+      "image_url": "/Porterias/strips/strip-020.png",
+      "publish_date": "2025-12-11",
+      "media_type": "image"
+    },
+    {
+      "id": "local-020",
+      "title": "Primera Tira",
+      "image_url": "/Porterias/strips/strip-020.png",
+      "publish_date": "2025-12-09",
+      "media_type": "image"
+    },
+    {
+      "id": "local-019",
+      "title": "El Misterio del 3º B",
+      "image_url": "/Porterias/strips/strip-019.png",
+      "publish_date": "2025-12-08",
+      "media_type": "image"
+    },
+    {
+      "id": "local-018",
+      "title": "Inspección Sanitaria",
+      "image_url": "/Porterias/strips/strip-018.png",
+      "publish_date": "2025-12-07",
+      "media_type": "image"
+    },
+    {
+      "id": "local-017",
+      "title": "La Llave Perdida",
+      "image_url": "/Porterias/strips/strip-017.png",
+      "publish_date": "2025-12-06",
+      "media_type": "image"
+    },
+    {
+      "id": "local-016",
+      "title": "Visita del Técnico",
+      "image_url": "/Porterias/strips/strip-016.png",
+      "publish_date": "2025-12-05",
+      "media_type": "image"
+    },
+    {
+      "id": "local-015",
+      "title": "Día de Mudanza",
+      "image_url": "/Porterias/strips/strip-015.png",
+      "publish_date": "2025-12-04",
+      "media_type": "image"
+    },
+    {
+      "id": "local-014",
+      "title": "Buzón Atascado",
+      "image_url": "/Porterias/strips/strip-014.png",
+      "publish_date": "2025-12-03",
+      "media_type": "image"
+    },
+    {
+      "id": "local-013",
+      "title": "Navidad Anticipada",
+      "image_url": "/Porterias/strips/strip-013.png",
+      "publish_date": "2025-12-02",
+      "media_type": "image"
+    },
+    {
+      "id": "local-012",
+      "title": "La Vecina Chismosa",
+      "image_url": "/Porterias/strips/strip-012.png",
+      "publish_date": "2025-12-01",
+      "media_type": "image"
+    },
+    {
+      "id": "local-011",
+      "title": "Apagón General",
+      "image_url": "/Porterias/strips/strip-011.png",
+      "publish_date": "2025-11-30",
+      "media_type": "image"
+    },
+    {
+      "id": "local-010",
+      "title": "El Cartero Sustituto",
+      "image_url": "/Porterias/strips/strip-010.png",
+      "publish_date": "2025-11-29",
+      "media_type": "image"
+    },
+    {
+      "id": "local-009",
+      "title": "Reforma en el Ático",
+      "image_url": "/Porterias/strips/strip-009.png",
+      "publish_date": "2025-11-28",
+      "media_type": "image"
+    },
+    {
+      "id": "local-008",
+      "title": "El Perro del 5º",
+      "image_url": "/Porterias/strips/strip-008.png",
+      "publish_date": "2025-11-27",
+      "media_type": "image"
+    },
+    {
+      "id": "local-007",
+      "title": "Fiesta Nocturna",
+      "image_url": "/Porterias/strips/strip-007.png",
+      "publish_date": "2025-11-26",
+      "media_type": "image"
+    },
+    {
+      "id": "local-006",
+      "title": "Horario de Basura",
+      "image_url": "/Porterias/strips/strip-006.png",
+      "publish_date": "2025-11-25",
+      "media_type": "image"
+    },
+    {
+      "id": "local-005",
+      "title": "El Ascensor Averiado",
+      "image_url": "/Porterias/strips/strip-005.png",
+      "publish_date": "2025-11-24",
+      "media_type": "image"
+    },
+    {
+      "id": "local-004",
+      "title": "La Conexión WiFi",
+      "image_url": "/Porterias/strips/strip-004.png",
+      "publish_date": "2025-11-23",
+      "media_type": "image"
+    },
+    {
+      "id": "local-003",
+      "title": "Reunión de Consorcio",
+      "image_url": "/Porterias/strips/strip-003.png",
+      "publish_date": "2025-11-22",
+      "media_type": "image"
+    },
+    {
+      "id": "local-002",
+      "title": "Paquetería Confusa",
+      "image_url": "/Porterias/strips/strip-002.png",
+      "publish_date": "2025-11-21",
+      "media_type": "image"
+    },
+    {
+      "id": "local-001",
+      "title": "El Nuevo Inquilino",
+      "image_url": "/Porterias/strips/strip-001.png",
+      "publish_date": "2025-11-20",
+      "media_type": "image"
+    }
+  ]
+}
